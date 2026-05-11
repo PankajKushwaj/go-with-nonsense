@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 mongoose.set("strictQuery", true);
 mongoose.set("bufferCommands", false);
 
+let connectionPromise = null;
+
 const configureMongoDns = () => {
   if (!process.env.MONGO_DNS_SERVERS) return;
 
@@ -23,6 +25,10 @@ const connectDB = async ({ required = process.env.NODE_ENV === "production" } = 
     return mongoose.connection;
   }
 
+  if (connectionPromise) {
+    return connectionPromise;
+  }
+
   if (!process.env.MONGO_URI) {
     const message = "MONGO_URI is not configured. API routes that use MongoDB will return errors until it is set.";
     if (required) {
@@ -34,12 +40,15 @@ const connectDB = async ({ required = process.env.NODE_ENV === "production" } = 
   }
 
   try {
-    const connection = await mongoose.connect(process.env.MONGO_URI, {
+    connectionPromise = mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000
     });
+    const connection = await connectionPromise;
     console.log(`MongoDB connected: ${connection.connection.host}`);
     return connection;
   } catch (error) {
+    connectionPromise = null;
+
     if (required) {
       throw error;
     }

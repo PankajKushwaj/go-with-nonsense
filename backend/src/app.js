@@ -54,9 +54,16 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-app.use("/api", async (_req, _res, next) => {
-  await connectDB({ required: false });
-  next();
+app.use("/api", async (_req, res, next) => {
+  try {
+    await connectDB({ required: true });
+    next();
+  } catch (error) {
+    res.status(503).json({
+      message: "Database connection is not ready. Please try again in a moment.",
+      details: process.env.NODE_ENV === "production" ? undefined : error.message
+    });
+  }
 });
 
 app.use("/api/auth", authRoutes);
