@@ -1,6 +1,12 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const normalizeApiUrl = (value) => {
+  const rawValue = String(value || "").trim();
+  const withoutKey = rawValue.startsWith("VITE_API_URL=") ? rawValue.split("=").slice(1).join("=") : rawValue;
+  return withoutKey || "http://localhost:5000/api";
+};
+
+export const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL);
 
 const api = axios.create({
   baseURL: API_URL,

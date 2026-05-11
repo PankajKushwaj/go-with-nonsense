@@ -40,7 +40,17 @@ export const useProducts = ({ category = "All", search = "", featured = false } 
           },
           signal: controller.signal
         });
-        setProducts(response.data);
+        const productList = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data?.products)
+            ? response.data.products
+            : [];
+
+        if (!productList.length && response.data && !Array.isArray(response.data)) {
+          throw new Error("Products API did not return a product list");
+        }
+
+        setProducts(productList);
       } catch (requestError) {
         if (requestError.name === "CanceledError") return;
         setProducts(filterSamples(params));
