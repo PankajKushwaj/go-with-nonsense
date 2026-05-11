@@ -1,0 +1,37 @@
+{
+  "name": "go-with-nonsense-backend",
+  "version": "1.0.0",
+  "description": "Express API for Go with Nonsense handmade resin art store.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "seed": "node src/seed/seed.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "express",
+    "mongodb",
+    "razorpay",
+    "cloudinary"
+  ],
+  "author": "Go with Nonsense",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^7.2.0",
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0",
+    "multer": "^2.1.1",
+    "razorpay": "^2.9.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
