@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import morgan from "morgan";
+import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
@@ -51,6 +52,11 @@ app.get("/api/health", (_req, res) => {
     mongoConfigured: Boolean(process.env.MONGO_URI),
     mongoConnected: mongoose.connection.readyState === 1
   });
+});
+
+app.use("/api", async (_req, _res, next) => {
+  await connectDB({ required: false });
+  next();
 });
 
 app.use("/api/auth", authRoutes);
