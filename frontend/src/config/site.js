@@ -3,7 +3,7 @@ export const brand = {
   tagline: "Handmade Resin Art & Creative Crafts",
   whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER || "919999999999",
   instagramUrl: import.meta.env.VITE_INSTAGRAM_URL || "https://www.instagram.com/gowithnonsense",
-  email: "hello@gowithnonsense.com"
+  email: "pankajkushwah768992@gmail.com"
 };
 
 export const categories = [
