@@ -14,6 +14,7 @@ import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import Shop from "./pages/Shop.jsx";
+import TrackOrder from "./pages/TrackOrder.jsx";
 
 const App = () => (
   <div className="min-h-screen bg-cream text-ink">
@@ -27,6 +28,7 @@ const App = () => (
         <Route path="/custom-order" element={<CustomOrder />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/track-order" element={<TrackOrder />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />

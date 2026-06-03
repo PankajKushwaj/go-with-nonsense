@@ -4,6 +4,7 @@ import {
   deleteOrder,
   getOrderById,
   getOrders,
+  trackOrder,
   updateOrderStatus
 } from "../controllers/orderController.js";
 import { adminOnly, protect } from "../middleware/authMiddleware.js";
@@ -11,6 +12,7 @@ import { adminOnly, protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.route("/").post(createOrder).get(protect, adminOnly, getOrders);
+router.post("/track", trackOrder);
 router
   .route("/:id")
   .get(protect, adminOnly, getOrderById)

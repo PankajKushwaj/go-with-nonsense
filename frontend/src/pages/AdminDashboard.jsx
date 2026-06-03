@@ -498,6 +498,7 @@ const AdminDashboard = () => {
                           <StatusPill status={order.paymentStatus} />
                         </div>
                         <p className="mt-2 text-sm text-ink/55">{order.phone} - {order.email || "No email"} - {shortDate(order.createdAt)}</p>
+                        <p className="mt-1 break-all font-mono text-xs font-bold text-ink/45">Order ID: {order._id}</p>
                         <p className="mt-2 text-sm text-ink/70">{order.address}</p>
                       </div>
                       <p className="text-2xl font-black">{money(order.totalAmount)}</p>

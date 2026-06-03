@@ -26,6 +26,28 @@ const orderItemSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const orderStatusValues = ["Pending", "Confirmed", "In Progress", "Shipped", "Delivered", "Cancelled"];
+
+const statusHistorySchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: orderStatusValues,
+      required: true
+    },
+    note: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  { _id: false }
+);
+
 const orderSchema = new mongoose.Schema(
   {
     customerName: {
@@ -69,8 +91,12 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ["Pending", "Confirmed", "In Progress", "Shipped", "Delivered", "Cancelled"],
+      enum: orderStatusValues,
       default: "Pending"
+    },
+    statusHistory: {
+      type: [statusHistorySchema],
+      default: () => [{ status: "Pending", note: "Order received" }]
     },
     paymentInfo: {
       razorpayOrderId: String,

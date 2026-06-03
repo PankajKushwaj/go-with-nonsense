@@ -1,4 +1,4 @@
-import { Instagram, Mail, MapPin, MessageCircle } from "lucide-react";
+import { Instagram, Mail, MapPin, MessageCircle, PackageCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { brand, categories, whatsappLink } from "../config/site.js";
 
@@ -52,6 +52,10 @@ const Footer = () => (
             <MessageCircle size={16} />
             WhatsApp Orders
           </a>
+          <Link to="/track-order" className="flex items-center gap-2 transition hover:text-cream">
+            <PackageCheck size={16} />
+            Track Order
+          </Link>
           <span className="flex items-center gap-2">
             <MapPin size={16} />
             Handmade in India

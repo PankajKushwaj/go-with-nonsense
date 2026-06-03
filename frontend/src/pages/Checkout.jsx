@@ -35,12 +35,19 @@ const Checkout = () => {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
+  const [placedOrder, setPlacedOrder] = useState(null);
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
 
-  const orderMessage = `Hi Go with Nonsense, I want to place this order:\n${items
-    .map((item) => `${item.quantity} x ${item.name} - ${money(item.price * item.quantity)}`)
-    .join("\n")}\nTotal: ${money(subtotal)}\nName: ${form.customerName}\nPhone: ${form.phone}\nAddress: ${form.address}`;
+  const summaryItems = placedOrder?.items?.length ? placedOrder.items : items;
+  const summaryTotal = placedOrder ? placedOrder.totalAmount : subtotal;
+
+  const buildOrderMessage = (orderId = "") =>
+    `Hi Go with Nonsense, I want to place this order:\n${items
+      .map((item) => `${item.quantity} x ${item.name} - ${money(item.price * item.quantity)}`)
+      .join("\n")}\nTotal: ${money(subtotal)}${orderId ? `\nOrder ID: ${orderId}` : ""}\nName: ${form.customerName}\nPhone: ${
+      form.phone
+    }\nAddress: ${form.address}`;
 
   const validate = () => {
     if (!form.customerName.trim() || !form.phone.trim() || !form.address.trim()) {
@@ -121,22 +128,24 @@ const Checkout = () => {
 
     setLoading(true);
     setStatus({ type: "", message: "" });
+    setPlacedOrder(null);
 
     try {
       const response = await api.post("/orders", createOrderPayload());
+      const createdOrder = response.data;
+      setPlacedOrder(createdOrder);
 
       if (form.paymentMethod === "Razorpay") {
-        await runRazorpay(response.data);
+        await runRazorpay(createdOrder);
         setStatus({ type: "success", message: "Payment verified and order placed successfully." });
       } else if (form.paymentMethod === "WhatsApp") {
-        window.open(whatsappLink(orderMessage), "_blank", "noopener,noreferrer");
+        window.open(whatsappLink(buildOrderMessage(createdOrder._id)), "_blank", "noopener,noreferrer");
         setStatus({ type: "success", message: "Order saved. Continue the confirmation on WhatsApp." });
       } else {
         setStatus({ type: "success", message: "Order placed successfully. Payment can be handled on delivery." });
       }
 
       clearCart();
-      setForm(initialForm);
     } catch (error) {
       setStatus({
         type: "error",
@@ -147,7 +156,7 @@ const Checkout = () => {
     }
   };
 
-  if (!items.length && status.type !== "success") {
+  if (!items.length && !placedOrder && status.type !== "success") {
     return (
       <div className="container-page py-16">
         <EmptyState
@@ -246,16 +255,28 @@ const Checkout = () => {
               </p>
             ) : null}
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button type="submit" className="btn-primary" disabled={loading}>
-                <CreditCard size={18} />
-                {loading ? "Processing..." : "Place Order"}
-              </button>
-              <a href={whatsappLink(orderMessage)} className="btn-secondary" target="_blank" rel="noreferrer">
-                <MessageCircle size={18} />
-                WhatsApp Order
-              </a>
-            </div>
+            {placedOrder ? (
+              <div className="mt-5 rounded-lg border border-sage/20 bg-sage/10 p-4">
+                <p className="text-sm font-bold text-sage">Order ID</p>
+                <p className="mt-2 break-all font-mono text-sm font-black text-ink">{placedOrder._id}</p>
+                <Link to={`/track-order?orderId=${placedOrder._id}`} className="btn-secondary mt-4">
+                  Track Order
+                </Link>
+              </div>
+            ) : null}
+
+            {!placedOrder ? (
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button type="submit" className="btn-primary" disabled={loading}>
+                  <CreditCard size={18} />
+                  {loading ? "Processing..." : "Place Order"}
+                </button>
+                <a href={whatsappLink(buildOrderMessage())} className="btn-secondary" target="_blank" rel="noreferrer">
+                  <MessageCircle size={18} />
+                  WhatsApp Order
+                </a>
+              </div>
+            ) : null}
           </form>
 
           <aside className="h-fit rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
@@ -269,8 +290,8 @@ const Checkout = () => {
               </div>
             </div>
             <div className="mt-6 grid gap-4">
-              {items.map((item) => (
-                <div key={item._id} className="flex gap-3">
+              {summaryItems.map((item, index) => (
+                <div key={item._id || item.product || `${item.name}-${index}`} className="flex gap-3">
                   <img src={item.image} alt={item.name} className="h-16 w-16 rounded-lg object-cover" />
                   <div className="flex-1">
                     <p className="font-bold">{item.name}</p>
@@ -283,7 +304,7 @@ const Checkout = () => {
             <div className="mt-6 border-t border-ink/10 pt-5">
               <div className="flex justify-between text-lg font-black">
                 <span>Total</span>
-                <span>{money(subtotal)}</span>
+                <span>{money(summaryTotal)}</span>
               </div>
             </div>
           </aside>

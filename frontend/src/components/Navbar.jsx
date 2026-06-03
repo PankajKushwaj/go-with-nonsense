@@ -10,6 +10,7 @@ const links = [
   { label: "Shop", to: "/shop" },
   { label: "Jewellery", to: "/jewellery" },
   { label: "Custom", to: "/custom-order" },
+  { label: "Track", to: "/track-order" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" }
 ];

@@ -11,6 +11,41 @@ const normalizeOrderItems = (items = []) =>
     quantity: Number(item.quantity || item.qty || 1)
   }));
 
+const allowedStatuses = ["Pending", "Confirmed", "In Progress", "Shipped", "Delivered", "Cancelled"];
+const allowedPaymentStatuses = ["Pending", "Paid", "Failed", "Refunded"];
+
+const normalizePhoneDigits = (value = "") => compactString(value).replace(/\D/g, "");
+
+const contactMatchesOrder = (order, contact = "") => {
+  const cleanContact = compactString(contact).toLowerCase();
+  if (!cleanContact) return false;
+
+  if (cleanContact.includes("@")) {
+    return Boolean(order.email && order.email.toLowerCase() === cleanContact);
+  }
+
+  const inputDigits = normalizePhoneDigits(cleanContact);
+  const orderDigits = normalizePhoneDigits(order.phone);
+  if (!inputDigits || !orderDigits) return false;
+
+  return orderDigits === inputDigits || orderDigits.endsWith(inputDigits) || inputDigits.endsWith(orderDigits);
+};
+
+const safeTrackingPayload = (order) => ({
+  _id: order._id,
+  customerName: order.customerName,
+  items: order.items,
+  totalAmount: order.totalAmount,
+  paymentMethod: order.paymentMethod,
+  paymentStatus: order.paymentStatus,
+  orderStatus: order.orderStatus,
+  statusHistory: order.statusHistory?.length
+    ? order.statusHistory
+    : [{ status: order.orderStatus || "Pending", note: "Current order status", createdAt: order.createdAt }],
+  createdAt: order.createdAt,
+  updatedAt: order.updatedAt
+});
+
 export const createOrder = asyncHandler(async (req, res) => {
   const customerName = compactString(req.body.customerName);
   const phone = compactString(req.body.phone);
@@ -54,6 +89,25 @@ export const createOrder = asyncHandler(async (req, res) => {
   res.status(201).json(order);
 });
 
+export const trackOrder = asyncHandler(async (req, res) => {
+  const orderId = compactString(req.body.orderId || req.body.id);
+  const contact = compactString(req.body.contact || req.body.phone || req.body.email);
+
+  if (!isMongoId(orderId) || !contact) {
+    res.status(400);
+    throw new Error("Order ID and phone or email are required");
+  }
+
+  const order = await Order.findById(orderId);
+
+  if (!order || !contactMatchesOrder(order, contact)) {
+    res.status(404);
+    throw new Error("Order not found for these details");
+  }
+
+  res.json(safeTrackingPayload(order));
+});
+
 export const getOrders = asyncHandler(async (_req, res) => {
   const orders = await Order.find().sort({ createdAt: -1 });
   res.json(orders);
@@ -81,8 +135,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error("Order not found");
   }
 
-  const allowedStatuses = ["Pending", "Confirmed", "In Progress", "Shipped", "Delivered", "Cancelled"];
-  const allowedPaymentStatuses = ["Pending", "Paid", "Failed", "Refunded"];
   const updates = {};
 
   if (req.body.orderStatus) {
@@ -101,15 +153,24 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     updates.paymentStatus = req.body.paymentStatus;
   }
 
-  const order = await Order.findByIdAndUpdate(req.params.id, updates, {
-    new: true,
-    runValidators: true
-  });
+  const order = await Order.findById(req.params.id);
 
   if (!order) {
     res.status(404);
     throw new Error("Order not found");
   }
+
+  const statusChanged = Boolean(updates.orderStatus && updates.orderStatus !== order.orderStatus);
+  Object.assign(order, updates);
+
+  if (statusChanged) {
+    order.statusHistory.push({
+      status: updates.orderStatus,
+      note: `Order marked ${updates.orderStatus}`
+    });
+  }
+
+  await order.save();
 
   res.json(order);
 });
