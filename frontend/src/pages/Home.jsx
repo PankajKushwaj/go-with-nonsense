@@ -1,11 +1,12 @@
-import { ArrowRight, Gift, Instagram, Palette, Sparkles, Wand2 } from "lucide-react";
+import { ArrowRight, Gem, Gift, Instagram, Sparkles, Wand2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard.jsx";
 import SectionHeader from "../components/SectionHeader.jsx";
-import { brand, categories } from "../config/site.js";
+import { brand } from "../config/site.js";
 import { useProducts } from "../hooks/useProducts.js";
 
-const categoryIcons = [Sparkles, Gift, Wand2, Palette];
+const homeCategories = ["Resin Keychains", "Resin Frames", "Jewellery", "Custom Gifts"];
+const categoryIcons = [Sparkles, Gift, Gem, Wand2];
 
 const reviews = [
   {
@@ -60,7 +61,7 @@ const Home = () => {
 
       <section className="bg-white/60 py-10">
         <div className="container-page grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.slice(0, 4).map((category, index) => {
+          {homeCategories.map((category, index) => {
             const Icon = categoryIcons[index] || Sparkles;
             return (
               <Link
@@ -106,6 +107,56 @@ const Home = () => {
                   <div key={index} className="h-[420px] animate-pulse rounded-lg bg-white/70" />
                 ))
               : null}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-lavender/30 py-16 sm:py-20">
+        <div className="container-page grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <SectionHeader
+              eyebrow="Jewellery"
+              title="Handmade resin jewellery for gifting and everyday sparkle"
+              description="Browse pendants, earrings, bracelets, rings, and custom name charms with soft colors, shimmer, florals, and gift-ready handmade finishing."
+            />
+            <div className="mt-6 flex flex-wrap gap-2">
+              {["Pendants", "Earrings", "Bracelets", "Rings", "Custom Charms"].map((item) => (
+                <span key={item} className="badge bg-white/90">
+                  {item}
+                </span>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/jewellery" className="btn-primary">
+                Explore Jewellery
+                <ArrowRight size={18} />
+              </Link>
+              <Link to="/custom-order" className="btn-secondary">
+                Custom Jewellery
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="aspect-[4/5] overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
+              <img
+                src="https://images.unsplash.com/photo-1531995811006-35cb42e1a022?auto=format&fit=crop&w=900&q=85"
+                alt="Handmade resin jewellery styling"
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="flex flex-col justify-center rounded-lg border border-ink/10 bg-cream p-6 shadow-soft">
+              <Gem className="text-gold" size={34} />
+              <h3 className="mt-5 text-2xl font-black">Soft, personal, gift-ready</h3>
+              <p className="mt-3 leading-7 text-ink/65">
+                Delicate resin jewellery with pastel pigments, tiny florals, gold accents, and custom details for names,
+                initials, birthdays, and matching gift sets.
+              </p>
+              <Link to="/jewellery" className="mt-6 inline-flex items-center gap-2 text-sm font-black text-ink">
+                View collection
+                <ArrowRight size={16} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>

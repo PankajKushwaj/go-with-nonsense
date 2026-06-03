@@ -65,6 +65,32 @@ const sampleProducts = [
     isFeatured: true
   },
   {
+    _id: "sample-jewellery-9",
+    name: "Pastel Petal Earrings",
+    description:
+      "Lightweight resin earrings with pressed petals, soft shimmer, and a polished handmade finish.",
+    price: 349,
+    category: "Jewellery",
+    images: [
+      "https://images.unsplash.com/photo-1531995811006-35cb42e1a022?auto=format&fit=crop&w=900&q=80"
+    ],
+    stock: 15,
+    isFeatured: true
+  },
+  {
+    _id: "sample-jewellery-10",
+    name: "Custom Initial Charm Bracelet",
+    description:
+      "A resin charm bracelet personalized with an initial, pastel pigment, and gold accent details.",
+    price: 499,
+    category: "Jewellery",
+    images: [
+      "https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=900&q=80"
+    ],
+    stock: 10,
+    isFeatured: false
+  },
+  {
     _id: "sample-wallart-6",
     name: "Botanical Wall Art Panel",
     description:
