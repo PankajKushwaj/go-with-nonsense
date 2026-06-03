@@ -8,7 +8,8 @@ import {
   PackagePlus,
   RefreshCw,
   Save,
-  Trash2
+  Trash2,
+  Users
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import api, { apiMessage } from "../api/client.js";
@@ -37,6 +38,7 @@ const tabs = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "products", label: "Products", icon: Box },
   { id: "orders", label: "Orders", icon: ClipboardList },
+  { id: "customers", label: "Customers", icon: Users },
   { id: "custom", label: "Custom Orders", icon: MessageSquareText },
   { id: "messages", label: "Messages", icon: Mail }
 ];
@@ -57,6 +59,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [customOrders, setCustomOrders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,10 +73,11 @@ const AdminDashboard = () => {
     setNotice({ type: "", message: "" });
 
     try {
-      const [statsResponse, productsResponse, ordersResponse, customResponse, messagesResponse] = await Promise.all([
+      const [statsResponse, productsResponse, ordersResponse, customersResponse, customResponse, messagesResponse] = await Promise.all([
         api.get("/admin/stats"),
         api.get("/products"),
         api.get("/orders"),
+        api.get("/admin/customers"),
         api.get("/custom-orders"),
         api.get("/contact")
       ]);
@@ -81,6 +85,7 @@ const AdminDashboard = () => {
       setStats(statsResponse.data);
       setProducts(productsResponse.data);
       setOrders(ordersResponse.data);
+      setCustomers(customersResponse.data);
       setCustomOrders(customResponse.data);
       setMessages(messagesResponse.data);
     } catch (error) {
@@ -276,10 +281,11 @@ const AdminDashboard = () => {
 
             {!loading && activeTab === "overview" ? (
               <div className="grid gap-6">
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                   {[
                     ["Total Products", stats?.totalProducts || 0],
                     ["Total Orders", stats?.totalOrders || 0],
+                    ["Total Customers", stats?.totalCustomers || 0],
                     ["Total Revenue", money(stats?.totalRevenue || 0)],
                     ["Pending Orders", stats?.pendingOrders || 0]
                   ].map(([label, value]) => (
@@ -535,6 +541,111 @@ const AdminDashboard = () => {
                   </article>
                 ))}
                 {!orders.length ? <p className="rounded-lg bg-white p-5 text-sm text-ink/55">No orders yet.</p> : null}
+              </div>
+            ) : null}
+
+            {!loading && activeTab === "customers" ? (
+              <div className="grid gap-5">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    ["Total Customers", customers.length],
+                    ["Customers With Orders", customers.filter((customer) => customer.orderCount > 0).length],
+                    ["Active Customer Orders", customers.reduce((sum, customer) => sum + Number(customer.activeOrders || 0), 0)],
+                    ["Customer Spend", money(customers.reduce((sum, customer) => sum + Number(customer.totalSpent || 0), 0))]
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-lg border border-ink/10 bg-white p-5 shadow-sm">
+                      <p className="text-sm font-semibold text-ink/55">{label}</p>
+                      <p className="mt-3 text-2xl font-black">{value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {customers.map((customer) => (
+                  <article key={customer._id} className="rounded-lg border border-ink/10 bg-white p-5">
+                    <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-lavender/35 text-ink">
+                            <Users size={22} />
+                          </span>
+                          <div>
+                            <h2 className="text-xl font-black">{customer.name}</h2>
+                            <p className="break-all text-sm font-semibold text-ink/55">{customer.email}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                          <div className="rounded-lg bg-cream p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Phone</p>
+                            <p className="mt-1 font-bold">{customer.phone || "-"}</p>
+                          </div>
+                          <div className="rounded-lg bg-cream p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Joined</p>
+                            <p className="mt-1 font-bold">{shortDate(customer.createdAt)}</p>
+                          </div>
+                          <div className="rounded-lg bg-cream p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Customer ID</p>
+                            <p className="mt-1 break-all font-mono text-xs font-bold">{customer._id}</p>
+                          </div>
+                          <div className="rounded-lg bg-cream p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Last Order</p>
+                            <p className="mt-1 font-bold">{customer.latestOrderAt ? shortDate(customer.latestOrderAt) : "-"}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 rounded-lg bg-cream p-3">
+                          <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Latest Delivery Address</p>
+                          <p className="mt-1 text-sm leading-6 text-ink/70">{customer.latestAddress || "-"}</p>
+                        </div>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-4">
+                          <div className="rounded-lg border border-ink/10 p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Orders</p>
+                            <p className="mt-1 text-xl font-black">{customer.orderCount || 0}</p>
+                          </div>
+                          <div className="rounded-lg border border-ink/10 p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Active</p>
+                            <p className="mt-1 text-xl font-black">{customer.activeOrders || 0}</p>
+                          </div>
+                          <div className="rounded-lg border border-ink/10 p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Total Spend</p>
+                            <p className="mt-1 text-xl font-black">{money(customer.totalSpent || 0)}</p>
+                          </div>
+                          <div className="rounded-lg border border-ink/10 p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Paid Amount</p>
+                            <p className="mt-1 text-xl font-black">{money(customer.paidAmount || 0)}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg bg-cream p-4">
+                        <h3 className="font-black">Recent Orders</h3>
+                        <div className="mt-3 grid gap-3">
+                          {customer.recentOrders?.map((order) => (
+                            <div key={order._id} className="rounded-lg bg-white p-3">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <p className="font-mono text-xs font-bold text-ink/55">{order.publicId || publicOrderId(order)}</p>
+                                <StatusPill status={order.orderStatus} />
+                              </div>
+                              <p className="mt-2 font-bold">{money(order.totalAmount || 0)}</p>
+                              <p className="mt-1 text-xs text-ink/55">{shortDate(order.createdAt)}</p>
+                              <div className="mt-2 grid gap-1">
+                                {(order.items || []).slice(0, 2).map((item, index) => (
+                                  <p key={`${order._id}-${index}`} className="text-xs text-ink/60">
+                                    {item.quantity} x {item.name}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          {!customer.recentOrders?.length ? <p className="text-sm text-ink/55">No orders yet.</p> : null}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+
+                {!customers.length ? <p className="rounded-lg bg-white p-5 text-sm text-ink/55">No customers yet.</p> : null}
               </div>
             ) : null}
 
