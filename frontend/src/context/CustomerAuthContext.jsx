@@ -7,19 +7,25 @@ const customerUserKey = "gwn_customer_user";
 
 const readCustomer = () => {
   try {
-    return JSON.parse(localStorage.getItem(customerUserKey));
+    localStorage.removeItem(customerTokenKey);
+    localStorage.removeItem(customerUserKey);
+    return JSON.parse(sessionStorage.getItem(customerUserKey));
   } catch {
     return null;
   }
 };
 
 export const CustomerAuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem(customerTokenKey));
+  const [token, setToken] = useState(() => {
+    localStorage.removeItem(customerTokenKey);
+    localStorage.removeItem(customerUserKey);
+    return sessionStorage.getItem(customerTokenKey);
+  });
   const [user, setUser] = useState(readCustomer);
 
   const saveSession = (data) => {
-    localStorage.setItem(customerTokenKey, data.token);
-    localStorage.setItem(customerUserKey, JSON.stringify(data.user));
+    sessionStorage.setItem(customerTokenKey, data.token);
+    sessionStorage.setItem(customerUserKey, JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
     return data;
@@ -39,6 +45,8 @@ export const CustomerAuthProvider = ({ children }) => {
         return saveSession(response.data);
       },
       logout: () => {
+        sessionStorage.removeItem(customerTokenKey);
+        sessionStorage.removeItem(customerUserKey);
         localStorage.removeItem(customerTokenKey);
         localStorage.removeItem(customerUserKey);
         setToken(null);

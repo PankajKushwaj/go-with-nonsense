@@ -16,8 +16,8 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const url = String(config.url || "");
   const method = String(config.method || "get").toLowerCase();
-  const adminToken = localStorage.getItem("gwn_admin_token");
-  const customerToken = localStorage.getItem("gwn_customer_token");
+  const adminToken = sessionStorage.getItem("gwn_admin_token");
+  const customerToken = sessionStorage.getItem("gwn_customer_token");
   const useCustomerToken = url.startsWith("/auth/customer") || (url === "/orders" && method === "post");
   const token = useCustomerToken ? customerToken : adminToken;
 
