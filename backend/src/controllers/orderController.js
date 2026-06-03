@@ -98,9 +98,9 @@ const safeTrackingPayload = (order) => ({
 });
 
 export const createOrder = asyncHandler(async (req, res) => {
-  const customerName = compactString(req.body.customerName);
-  const phone = compactString(req.body.phone);
-  const email = compactString(req.body.email).toLowerCase();
+  const customerName = compactString(req.body.customerName || req.user?.name);
+  const phone = compactString(req.body.phone || req.user?.phone);
+  const email = compactString(req.body.email || req.user?.email).toLowerCase();
   const address = compactString(req.body.address);
   const paymentMethod = req.body.paymentMethod || "WhatsApp";
   const items = normalizeOrderItems(req.body.items);
@@ -127,6 +127,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const order = await createOrderWithNumber({
+    customer: req.user?.role === "customer" ? req.user._id : undefined,
     customerName,
     phone,
     email,

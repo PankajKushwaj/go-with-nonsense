@@ -1,10 +1,11 @@
 import { CreditCard, MessageCircle, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { apiMessage } from "../api/client.js";
 import EmptyState from "../components/EmptyState.jsx";
 import { brand, money, whatsappLink } from "../config/site.js";
 import { useCart } from "../context/CartContext.jsx";
+import { useCustomerAuth } from "../context/CustomerAuthContext.jsx";
 
 const initialForm = {
   customerName: "",
@@ -34,12 +35,24 @@ const loadRazorpayScript = () =>
 
 const Checkout = () => {
   const { items, subtotal, clearCart } = useCart();
+  const { user: customer } = useCustomerAuth();
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
   const [placedOrder, setPlacedOrder] = useState(null);
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+
+  useEffect(() => {
+    if (!customer || placedOrder) return;
+
+    setForm((current) => ({
+      ...current,
+      customerName: current.customerName || customer.name || "",
+      phone: current.phone || customer.phone || "",
+      email: current.email || customer.email || ""
+    }));
+  }, [customer, placedOrder]);
 
   const summaryItems = placedOrder?.items?.length ? placedOrder.items : items;
   const summaryTotal = placedOrder ? placedOrder.totalAmount : subtotal;

@@ -58,6 +58,10 @@ const orderSchema = new mongoose.Schema(
       sparse: true,
       index: true
     },
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    },
     customerName: {
       type: String,
       required: [true, "Customer name is required"],

@@ -4,6 +4,7 @@ import { Link, NavLink } from "react-router-dom";
 import { brand } from "../config/site.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCart } from "../context/CartContext.jsx";
+import { useCustomerAuth } from "../context/CustomerAuthContext.jsx";
 
 const links = [
   { label: "Home", to: "/" },
@@ -24,6 +25,9 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { itemCount } = useCart();
   const { isAuthenticated } = useAuth();
+  const { isCustomerAuthenticated } = useCustomerAuth();
+  const accountLink = isAuthenticated ? "/admin" : isCustomerAuthenticated ? "/account" : "/customer-login";
+  const accountTitle = isAuthenticated ? "Admin" : isCustomerAuthenticated ? "My account" : "Customer login";
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream/90 backdrop-blur-xl">
@@ -51,7 +55,7 @@ const Navbar = () => {
             <Link to="/shop" className="icon-btn" aria-label="Search products" title="Search products">
               <Search size={18} />
             </Link>
-            <Link to={isAuthenticated ? "/admin" : "/login"} className="icon-btn" aria-label="Admin login" title="Admin">
+            <Link to={accountLink} className="icon-btn" aria-label={accountTitle} title={accountTitle}>
               <UserRound size={18} />
             </Link>
             <Link to="/cart" className="icon-btn relative" aria-label="Cart" title="Cart">
