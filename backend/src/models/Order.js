@@ -50,6 +50,14 @@ const statusHistorySchema = new mongoose.Schema(
 
 const orderSchema = new mongoose.Schema(
   {
+    orderNumber: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      unique: true,
+      sparse: true,
+      index: true
+    },
     customerName: {
       type: String,
       required: [true, "Customer name is required"],

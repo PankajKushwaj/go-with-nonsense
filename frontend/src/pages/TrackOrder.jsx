@@ -10,6 +10,8 @@ import { money, orderStatuses } from "../config/site.js";
 const activeStatuses = orderStatuses.filter((status) => status !== "Cancelled");
 const terminalStatuses = ["Delivered", "Cancelled"];
 
+const publicOrderId = (order) => order?.orderNumber || order?._id || "";
+
 const statusContent = {
   Pending: {
     icon: Clock,
@@ -119,6 +121,8 @@ const TrackOrder = () => {
     return extraCount > 0 ? `${firstItem.name} + ${extraCount} more` : firstItem.name;
   }, [order]);
 
+  const trackingId = publicOrderId(order);
+
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
@@ -171,10 +175,10 @@ const TrackOrder = () => {
   };
 
   const copyOrderId = async () => {
-    if (!order?._id) return;
+    if (!trackingId) return;
 
     try {
-      await navigator.clipboard.writeText(order._id);
+      await navigator.clipboard.writeText(trackingId);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -202,7 +206,7 @@ const TrackOrder = () => {
                 className="input"
                 value={form.orderId}
                 onChange={(event) => updateField("orderId", event.target.value)}
-                placeholder="Paste your order ID"
+                placeholder="GWN-20260603-A1B2"
               />
             </div>
             <div className="mt-5">
@@ -226,7 +230,7 @@ const TrackOrder = () => {
             </button>
 
             <p className="mt-5 text-sm leading-6 text-ink/55">
-              The order ID is shown after checkout and can also be copied from the confirmation message.
+              The order ID is created automatically after checkout and can also be copied from the confirmation message.
             </p>
           </form>
 
@@ -272,7 +276,7 @@ const TrackOrder = () => {
                     <div className="rounded-lg bg-cream p-4">
                       <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Order ID</p>
                       <button type="button" className="mt-2 flex max-w-full items-center gap-2 text-left" onClick={copyOrderId}>
-                        <span className="truncate font-mono text-sm font-bold">{order._id}</span>
+                        <span className="truncate font-mono text-sm font-bold">{trackingId}</span>
                         <Copy size={15} className="shrink-0 text-ink/45" />
                       </button>
                       {copied ? <p className="mt-1 text-xs font-semibold text-sage">Copied</p> : null}

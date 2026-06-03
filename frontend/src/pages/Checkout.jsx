@@ -16,6 +16,8 @@ const initialForm = {
 
 const isMongoId = (value = "") => /^[a-f\d]{24}$/i.test(value);
 
+const publicOrderId = (order) => order?.orderNumber || order?._id || "";
+
 const loadRazorpayScript = () =>
   new Promise((resolve) => {
     if (window.Razorpay) {
@@ -133,13 +135,14 @@ const Checkout = () => {
     try {
       const response = await api.post("/orders", createOrderPayload());
       const createdOrder = response.data;
+      const trackingId = publicOrderId(createdOrder);
       setPlacedOrder(createdOrder);
 
       if (form.paymentMethod === "Razorpay") {
         await runRazorpay(createdOrder);
         setStatus({ type: "success", message: "Payment verified and order placed successfully." });
       } else if (form.paymentMethod === "WhatsApp") {
-        window.open(whatsappLink(buildOrderMessage(createdOrder._id)), "_blank", "noopener,noreferrer");
+        window.open(whatsappLink(buildOrderMessage(trackingId)), "_blank", "noopener,noreferrer");
         setStatus({ type: "success", message: "Order saved. Continue the confirmation on WhatsApp." });
       } else {
         setStatus({ type: "success", message: "Order placed successfully. Payment can be handled on delivery." });
@@ -258,8 +261,8 @@ const Checkout = () => {
             {placedOrder ? (
               <div className="mt-5 rounded-lg border border-sage/20 bg-sage/10 p-4">
                 <p className="text-sm font-bold text-sage">Order ID</p>
-                <p className="mt-2 break-all font-mono text-sm font-black text-ink">{placedOrder._id}</p>
-                <Link to={`/track-order?orderId=${placedOrder._id}`} className="btn-secondary mt-4">
+                <p className="mt-2 break-all font-mono text-sm font-black text-ink">{publicOrderId(placedOrder)}</p>
+                <Link to={`/track-order?orderId=${encodeURIComponent(publicOrderId(placedOrder))}`} className="btn-secondary mt-4">
                   Track Order
                 </Link>
               </div>

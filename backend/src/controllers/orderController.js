@@ -16,6 +16,56 @@ const allowedPaymentStatuses = ["Pending", "Paid", "Failed", "Refunded"];
 
 const normalizePhoneDigits = (value = "") => compactString(value).replace(/\D/g, "");
 
+const createOrderNumber = () => {
+  const now = new Date();
+  const datePart = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("");
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `GWN-${datePart}-${randomPart}`;
+};
+
+const generateUniqueOrderNumber = async () => {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const orderNumber = createOrderNumber();
+    const exists = await Order.exists({ orderNumber });
+    if (!exists) return orderNumber;
+  }
+
+  throw new Error("Could not generate a unique order ID");
+};
+
+const createOrderWithNumber = async (payload) => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const orderNumber = await generateUniqueOrderNumber();
+
+    try {
+      return await Order.create({ ...payload, orderNumber });
+    } catch (error) {
+      if (error?.code !== 11000 || !error?.keyValue?.orderNumber) {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Could not create a unique order ID");
+};
+
+const findOrderByPublicId = async (value = "") => {
+  const cleanValue = compactString(value);
+  if (!cleanValue) return null;
+
+  if (isMongoId(cleanValue)) {
+    return Order.findOne({
+      $or: [{ _id: cleanValue }, { orderNumber: cleanValue.toUpperCase() }]
+    });
+  }
+
+  return Order.findOne({ orderNumber: cleanValue.toUpperCase() });
+};
+
 const contactMatchesOrder = (order, contact = "") => {
   const cleanContact = compactString(contact).toLowerCase();
   if (!cleanContact) return false;
@@ -33,6 +83,7 @@ const contactMatchesOrder = (order, contact = "") => {
 
 const safeTrackingPayload = (order) => ({
   _id: order._id,
+  orderNumber: order.orderNumber,
   customerName: order.customerName,
   items: order.items,
   totalAmount: order.totalAmount,
@@ -75,7 +126,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const order = await Order.create({
+  const order = await createOrderWithNumber({
     customerName,
     phone,
     email,
@@ -93,12 +144,12 @@ export const trackOrder = asyncHandler(async (req, res) => {
   const orderId = compactString(req.body.orderId || req.body.id);
   const contact = compactString(req.body.contact || req.body.phone || req.body.email);
 
-  if (!isMongoId(orderId) || !contact) {
+  if (!orderId || !contact) {
     res.status(400);
     throw new Error("Order ID and phone or email are required");
   }
 
-  const order = await Order.findById(orderId);
+  const order = await findOrderByPublicId(orderId);
 
   if (!order || !contactMatchesOrder(order, contact)) {
     res.status(404);

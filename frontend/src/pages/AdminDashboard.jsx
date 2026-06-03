@@ -49,6 +49,8 @@ const shortDate = (value) =>
       }).format(new Date(value))
     : "-";
 
+const publicOrderId = (order) => order?.orderNumber || order?._id || "";
+
 const AdminDashboard = () => {
   const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
@@ -296,6 +298,7 @@ const AdminDashboard = () => {
                         <div key={order._id} className="flex items-center justify-between gap-3 rounded-lg bg-cream p-3">
                           <div>
                             <p className="font-bold">{order.customerName}</p>
+                            <p className="font-mono text-xs font-bold text-ink/45">{publicOrderId(order)}</p>
                             <p className="text-sm text-ink/55">{money(order.totalAmount)} - {shortDate(order.createdAt)}</p>
                           </div>
                           <StatusPill status={order.orderStatus} />
@@ -498,7 +501,7 @@ const AdminDashboard = () => {
                           <StatusPill status={order.paymentStatus} />
                         </div>
                         <p className="mt-2 text-sm text-ink/55">{order.phone} - {order.email || "No email"} - {shortDate(order.createdAt)}</p>
-                        <p className="mt-1 break-all font-mono text-xs font-bold text-ink/45">Order ID: {order._id}</p>
+                        <p className="mt-1 break-all font-mono text-xs font-bold text-ink/45">Order ID: {publicOrderId(order)}</p>
                         <p className="mt-2 text-sm text-ink/70">{order.address}</p>
                       </div>
                       <p className="text-2xl font-black">{money(order.totalAmount)}</p>
